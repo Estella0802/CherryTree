@@ -1,0 +1,35 @@
+name: Build Mac App
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PyQt5 pyinstaller pyobjc pillow
+
+      - name: Build with PyInstaller
+        run: |
+          pyinstaller --windowed --name CherryTree --icon Cherrytree.ico --collect-all PyQt5 for_MyCherry.py
+
+      - name: Copy resources into app
+        run: |
+          cp *.gif *.png *.html *.mp3 dist/CherryTree.app/Contents/MacOS/ || true
+          cp -r photo dist/CherryTree.app/Contents/MacOS/ || true
+
+      - name: Upload app
+        uses: actions/upload-artifact@v4
+        with:
+          name: CherryTree-macOS
+          path: dist/CherryTree.app
