@@ -2,6 +2,10 @@ import sys, math, random, os, webbrowser
 import ctypes
 if sys.platform == "darwin":
     os.environ['QT_MAC_WANTS_LAYER'] = '1'
+def app_dir():
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.abspath(__file__))   
 from PyQt5.QtWidgets import QApplication, QWidget, QMenu, QAction
 from PyQt5.QtGui import QMovie, QPixmap, QPainter, QColor, QTransform, QPainterPath, QBrush
 from PyQt5.QtCore import Qt, QPoint, QTimer, QTime
@@ -381,7 +385,7 @@ class RanDesktopPet(QWidget):
             self.confetti_window.raise_()
 
     def open_birthday_card(self, filename):
-        full_path = os.path.abspath(filename)
+        full_path = os.path.join(app_dir(), filename)
         webbrowser.open("file://" + full_path)
 
     def time_in_range(self, now: QTime, s: QTime, e: QTime):
@@ -423,7 +427,7 @@ class RanDesktopPet(QWidget):
 
     def switch_state(self, state_name):
         self.current_state = state_name
-        fp = self.file_list[state_name]
+        fp = os.path.join(app_dir(), self.file_list[state_name])
 
         if self.current_movie is not None:
             self.current_movie.stop()
@@ -687,6 +691,15 @@ if __name__ == "__main__":
         # =============================================================
 
         app = QApplication(sys.argv)
+        # macOS 保险：某些 PyQt5 版本初始化时会覆盖 activation policy，这里再设一次
+        if sys.platform == "darwin":
+            try:
+                from AppKit import NSApplication, NSApplicationActivationPolicyAccessory
+                NSApplication.sharedApplication().setActivationPolicy_(
+                    NSApplicationActivationPolicyAccessory
+                )
+            except ImportError:
+                pass
         pet = RanDesktopPet()
         pet.show()
         sys.exit(app.exec_())
