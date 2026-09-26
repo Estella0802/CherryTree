@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Cherry 2026</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: "Microsoft Yahei", serif;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ================= 初始烟花粒子层 ================= */
+        #fireworksCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            transition: opacity 1s ease;
+        }
+
+        /* ================= 初始爱心 (在a的肚子里) ================= */
+        .heart-envelope {
+            position: fixed;
+            z-index: 10;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: translate(-50%, -50%);
+            transition: transform 0.4s ease, opacity 0.6s ease, filter 0.3s;
+            filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 40px rgba(255, 215, 0, 0.5));
+        }
+        .heart-envelope:hover {
+            filter: drop-shadow(0 0 30px #fff) drop-shadow(0 0 60px #FFD700) drop-shadow(0 0 90px #FFD700);
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+        .heart-envelope svg { width: 100%; height: 100%; }
+
+        /* ================= 未拆封的爱心信封 (屏幕正中间) ================= */
+        .heart-envelope-closed {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 160px;
+            height: 160px;
+            z-index: 150;
+            cursor: pointer;
+            display: none; /* 初始隐藏，转场后出现 */
+            transform: translate(-50%, -50%);
+            transition: transform 0.4s ease, opacity 0.4s ease, filter 0.3s;
+            filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 60px rgba(255, 215, 0, 0.6));
+            animation: pulseHeart 2s infinite ease-in-out;
+        }
+        .heart-envelope-closed.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .heart-envelope-closed:hover {
+            filter: drop-shadow(0 0 50px #fff) drop-shadow(0 0 100px #FFD700);
+            transform: translate(-50%, -50%) scale(1.1);
+            animation: none; /* 悬停时暂停呼吸动画 */
+        }
+        .heart-envelope-closed svg { width: 100%; height: 100%; }
+
+        /* 呼吸/跳动的提示动画 */
+        @keyframes pulseHeart {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* ================= 胶片照片墙 ================= */
+        .film-wrapper {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            gap: 10px;
+            z-index: 5;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+        .film-wrapper.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .film-row {
+            position: relative;
+            background: #111;
+            border-top: 2px solid #222;
+            border-bottom: 2px solid #222;
+            padding: 14px 0;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .film-row::before, .film-row::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background-image: repeating-linear-gradient(90deg, #000 0px, #000 6px, #fff 6px, #fff 12px);
+            background-size: 12px 8px;
+            z-index: 5;
+        }
+        .film-row::before { top: 3px; }
+        .film-row::after { bottom: 3px; }
+
+        .film-track {
+            display: flex;
+            width: max-content;
+            gap: 14px;
+            padding: 0 14px;
+        }
+
+        .scroll-left { animation: scroll-left 40s linear infinite; }
+        .scroll-right { animation: scroll-right 40s linear infinite; }
+
+        @keyframes scroll-left {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        @keyframes scroll-right {
+            0% { transform: translateX(-50%); }
+            100% { transform: translateX(0); }
+        }
+
+        .film-item {
+            flex-shrink: 0;
+            width: 18vw; 
+            height: 22vw;
+            min-width: 160px;
+            min-height: 200px;
+            max-width: 260px;
+            max-height: 320px;
+            background: #000;
+            border: 4px solid #222;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .film-item:hover {
+            transform: scale(1.05);
+            border-color: #fff;
+            z-index: 10;
+        }
+
+        .film-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* ================= 黑底金字信纸 ================= */
+        .opened-paper {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 92vw;
+            max-width: 650px;
+            height: 75vh;
+            max-height: 750px;
+            background: #0a0a0a;
+            padding: 30px 80px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 200; /* 必须比中间未拆封的信封高 */
+            box-shadow: 0 20px 80px rgba(255, 215, 0, 0.1), 0 0 0 1px rgba(255,215,0,0.2) inset;
+            display: flex;
+            flex-direction: column;
+            pointer-events: none;
+        }
+        .opened-paper.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .tulip-col {
+            position: absolute;
+            top: 30px;
+            bottom: 30px;
+            width: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            pointer-events: none;
+        }
+        .tulip-col.left { left: 20px; }
+        .tulip-col.right { right: 20px; }
+        .tulip-col svg {
+            width: 32px;
+            height: 48px;
+            opacity: 0.8;
+            filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
+        }
+
+        .letter-content {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+            color: #FFD700;
+            line-height: 1.8;
+            font-size: 1rem;
+            z-index: 2;
+        }
+
+        .letter-content::-webkit-scrollbar { width: 6px; }
+        .letter-content::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 3px; }
+
+        .letter-para {
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            margin-bottom: 16px;
+        }
+        .letter-para.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .letter-title { text-align: center; margin-bottom: 24px; font-weight: bold; font-size: 1.15rem; }
+        .sign { margin-top: 30px; text-align: right; font-weight: bold; }
+
+        .back-env-btn {
+            display: block;
+            width: 80%;
+            margin: 30px auto 10px;
+            text-align: center;
+            padding: 12px;
+            background: #1a1a1a;
+            border: 1px solid #FFD700;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: bold;
+            color: #FFD700;
+            transition: background 0.2s, color 0.2s;
+            user-select: none;
+        }
+        .back-env-btn:hover { background: #FFD700; color: #000; }
+
+        /* ================= 图片放大层 ================= */
+        .preview-mask {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 400;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            cursor: pointer;
+        }
+        .preview-mask img {
+            max-width: 95vw;
+            max-height: 95vh;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+            border-radius: 4px;
+        }
+
+        /* ================= 音乐按钮 ================= */
+        .music-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 300;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 215, 0, 0.2);
+            color: #FFD700;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .music-btn:hover { background: rgba(255, 215, 0, 0.4); }
+    </style>
+</head>
+<body>
+
+<canvas id="fireworksCanvas"></canvas>
+
+<!-- 初始爱心（在a中） -->
+<div class="heart-envelope" id="heartEnvelope">
+    <svg viewBox="0 0 100 100">
+        <path d="M50 85 C50 85 10 50 10 30 C10 15 25 5 40 15 C45 20 50 25 50 25 C50 25 55 20 60 15 C75 5 90 15 90 30 C90 50 50 85 50 85 Z" fill="#fff"/>
+        <g transform="translate(30, 18) scale(0.4)">
+            <path d="M50 70 L50 140" stroke="#4CAF50" stroke-width="6" fill="none"/>
+            <path d="M50 90 Q25 100 25 120 Q40 110 50 100" fill="#4CAF50"/>
+            <path d="M50 105 Q75 110 75 135 Q60 120 50 110" fill="#4CAF50"/>
+            <path d="M50 40 Q30 40 30 70 Q30 90 50 90 Q70 90 70 70 Q70 40 50 40 Z" fill="#FFC107"/>
+            <path d="M50 40 Q40 30 35 50 Q40 70 50 90" fill="#FFB300"/>
+            <path d="M50 40 Q60 30 65 50 Q60 70 50 90" fill="#FFB300"/>
+            <path d="M50 40 Q45 20 50 10 Q55 20 50 40" fill="#FFA000"/>
+        </g>
+    </svg>
+</div>
+
+<!-- 屏幕正中间：未拆封的爱心信封 -->
+<div class="heart-envelope-closed" id="heartEnvelopeClosed">
+    <svg viewBox="0 0 100 100">
+        <path d="M50 85 C50 85 10 50 10 30 C10 15 25 5 40 15 C45 20 50 25 50 25 C50 25 55 20 60 15 C75 5 90 15 90 30 C90 50 50 85 50 85 Z" fill="#fff"/>
+        <g transform="translate(30, 18) scale(0.4)">
+            <path d="M50 70 L50 140" stroke="#4CAF50" stroke-width="6" fill="none"/>
+            <path d="M50 90 Q25 100 25 120 Q40 110 50 100" fill="#4CAF50"/>
+            <path d="M50 105 Q75 110 75 135 Q60 120 50 110" fill="#4CAF50"/>
+            <path d="M50 40 Q30 40 30 70 Q30 90 50 90 Q70 90 70 70 Q70 40 50 40 Z" fill="#FFC107"/>
+            <path d="M50 40 Q40 30 35 50 Q40 70 50 90" fill="#FFB300"/>
+            <path d="M50 40 Q60 30 65 50 Q60 70 50 90" fill="#FFB300"/>
+            <path d="M50 40 Q45 20 50 10 Q55 20 50 40" fill="#FFA000"/>
+        </g>
+    </svg>
+</div>
+
+<button class="music-btn" id="musicBtn">♪</button>
+
+<audio id="fireworkSound" src="fireworks.mp3" preload="auto"></audio>
+<audio id="bgAudio" loop><source src="love_song.mp3" type="audio/mpeg"></audio>
+
+<div class="film-wrapper" id="filmWrapper">
+    <div class="film-row"><div class="film-track scroll-left" id="track1"></div></div>
+    <div class="film-row"><div class="film-track scroll-right" id="track2"></div></div>
+    <div class="film-row"><div class="film-track scroll-left" id="track3"></div></div>
+</div>
+
+<!-- 信纸 -->
+<div class="opened-paper" id="openedPaper">
+    <div class="tulip-col left">
+        <svg viewBox="0 0 100 150"><path d="M50 70 L50 140" stroke="#4CAF50" stroke-width="6" fill="none"/><path d="M50 90 Q25 100 25 120 Q40 110 50 100" fill="#4CAF50"/><path d="M50 105 Q75 110 75 135 Q60 120 50 110" fill="#4CAF50"/><path d="M50 40 Q30 40 30 70 Q30 90 50 90 Q70 90 70 70 Q70 40 50 40 Z" fill="#FFC107"/><path d="M50 40 Q40 30 35 50 Q40 70 50 90" fill="#FFB300"/><path d="M50 40 Q60 30 65 50 Q60 70 50 90" fill="#FFB300"/><path d="M50 40 Q45 20 50 10 Q55 20 50 40" fill="#FFA000"/></svg>
+        <svg viewBox="0 0 100 150"><path d="M50 70 L50 140" stroke="#4CAF50" stroke-width="6" fill="none"/><path d="M50 90 Q25 100 25 120 Q40 110 50 100" fill="#4CAF50"/><path d="M50 105 Q75 110 75 135 Q60 120 50 110" fill="#4CAF50"/><path d="M50 40 Q30 40 30 70 Q30 90 50 90 Q70 90 70 70 Q70 40 50 40 Z" fill="#FFC107"/><path d="M50 40 Q40 30 35 50 Q40 70 50 90" fill="#FFB300"/><path d="M50 40 Q60 30 65 50 Q60 70 50 90" fill="#FFB300"/><path d="M50 40 Q45 20 50 10 Q55 20 50 40" fill="#FFA000"/></svg>
+        <svg viewBox="0 0 100 150"><path d="M50 70 L50 140" stroke="#4CAF50" stroke-width="6" fill="none"/><path d="M50 90 Q25 100 25 120 Q40 110 50 100" fill="#4CAF50"/><path d="M50 105 Q75 110 75 135 Q60 120 50 110" fill="#4CAF50"/><path d="M50 40 Q30 40 30 70 Q30 90 50 90 Q70 90 70 70 Q70 40 50 40 Z" fill="#FFC107"/><path d="M50 40 Q40 30 35 50 Q40 70 50 90" fill="#FFB300"/><path d="M50 40 Q60 30 65 50 Q60 70 50 90" fill="#FFB300"/><path d="M50 40 Q45 20 50 10 Q55 20 50 40" fill="#FFA000"/></svg>
+    </div>
+    <div class="tulip-col right">
+        <svg viewBox="0 0 100 150"><path d="M50 70 L50 140" stroke="#4CAF50" stroke-width="6" fill="none"/><path d="M50 90 Q25 100 25 120 Q40 110 50 100" fill="#4CAF50"/><path d="M50 105 Q75 110 75 135 Q60 120 50 110" fill="#4CAF50"/><path d="M50 40 Q30 40 30 70 Q30 90 50 90 Q70 90 70 70 Q70 40 50 40 Z" fill="#FFC107"/><path d="M50 40 Q40 30 35 50 Q40 70 50 90" fill="#FFB300"/><path d="M50 40 Q60 30 65 50 Q60 70 50 90" fill="#FFB300"/><path d="M50 40 Q45 20 50 10 Q55 20 50 40" fill="#FFA000"/></svg>
+        <svg viewBox="0 0 100 150"><path d="M50 70 L50 140" stroke="#4CAF50" stroke-width="6" fill="none"/><path d="M50 90 Q25 100 25 120 Q40 110 50 100" fill="#4CAF50"/><path d="M50 105 Q75 110 75 135 Q60 120 50 110" fill="#4CAF50"/><path d="M50 40 Q30 40 30 70 Q30 90 50 90 Q70 90 70 70 Q70 40 50 40 Z" fill="#FFC107"/><path d="M50 40 Q40 30 35 50 Q40 70 50 90" fill="#FFB300"/><path d="M50 40 Q60 30 65 50 Q60 70 50 90" fill="#FFB300"/><path d="M50 40 Q45 20 50 10 Q55 20 50 40" fill="#FFA000"/></svg>
+        <svg viewBox="0 0 100 150"><path d="M50 70 L50 140" stroke="#4CAF50" stroke-width="6" fill="none"/><path d="M50 90 Q25 100 25 120 Q40 110 50 100" fill="#4CAF50"/><path d="M50 105 Q75 110 75 135 Q60 120 50 110" fill="#4CAF50"/><path d="M50 40 Q30 40 30 70 Q30 90 50 90 Q70 90 70 70 Q70 40 50 40 Z" fill="#FFC107"/><path d="M50 40 Q40 30 35 50 Q40 70 50 90" fill="#FFB300"/><path d="M50 40 Q60 30 65 50 Q60 70 50 90" fill="#FFB300"/><path d="M50 40 Q45 20 50 10 Q55 20 50 40" fill="#FFA000"/></svg>
+    </div>
+
+    <div class="letter-content" id="letterContent">
+        <div class="letter-para letter-title">亲爱的Cherry：</div>
+        <div class="letter-para letter-title">生日快乐！</div>
+        <div class="letter-para">这一年是你我聚少离多的一年。对我来说，这是充满了对你的思念的一年。无数次我都想过，如果此时你在我身边，该有多好。在从去年九月开始细数的十个月里，离开你的我有过无数个挣扎、无措、茫然、惦念的时刻，不知自己做出的决定到底是否正确。每次见到你，我都好像控制不住地流露出悲伤的情绪，请让我为此道歉。</div>
+        <div class="letter-para">我知道你不会因此介意，可是对我来说，Cherry是一个十分在乎除了自己之外的其他人的感受的人。她总是会问我，你开心吗？总是如此在意着我的情绪，和身边人的情绪。我的答案中喜忧各半，而当我问她的时候，她的答案永远都是“开心”。</div>
+        <div class="letter-para">如果没有你，今年的我又怎么能够度过任何一天跟幸福相关的日子呢？而这样温柔美好的你，真的获得了应有的幸福快乐吗？Cherry总是很容易地就让身边人尽兴，而又有谁能让她尽兴呢？</div>
+        <div class="letter-para">所以，在今天的Cherry许愿之前，我先许愿：愿Cherry今天可以度过完全美好的一天。在这一天里，任何会让你不开心的事情都将不复存在。所有人都会为你送上祝福，所有的目光都将为你倾注，所有的喝彩都向你涌来，你的所经之路上皆是鲜花与人声鼎沸。祝我的Cherry今日极乐无穷，尽兴而归。而若我的愿望成真，就祝我的宝贝岁岁年年，长似今朝。</div>
+        <div class="letter-para">你现在正在听的这首歌叫做《情歌》。在你我经历了无数次告别的这一年，我们之间的回忆就像那些最抓人的旋律在我的脑中时时循环。而我们永远会有下一首情歌，因为你早已是我生命的一部分，因为我们的爱会天长地久。</div>
+        <div class="letter-para sign">会一直在的晶晶♥</div>
+        <div class="back-env-btn" id="backEnvBtn">✉️ 点击收回信封</div>
+    </div>
+</div>
+
+<div class="preview-mask" id="previewMask"><img id="previewImg" alt=""></div>
+
+<script>
+    // ==========================================
+    // 0. 音频池初始化（用于播放 fireworks.mp3）
+    // ==========================================
+    const fireworkSoundPool = [];
+    const POOL_SIZE = 5;
+    let poolIndex = 0;
+    
+    function initAudioPool() {
+        const baseAudio = document.getElementById('fireworkSound');
+        for (let i = 0; i < POOL_SIZE; i++) {
+            const clone = baseAudio.cloneNode();
+            clone.volume = 0.3; 
+            fireworkSoundPool.push(clone);
+        }
+    }
+    initAudioPool();
+
+    function playFireworkSound() {
+        if (fireworkSoundPool.length === 0) return;
+        const audio = fireworkSoundPool[poolIndex];
+        poolIndex = (poolIndex + 1) % POOL_SIZE;
+        audio.currentTime = 0;
+        audio.play().catch(() => {}); 
+    }
+
+    // ==========================================
+    // 1. 初始化照片墙数据
+    // ==========================================
+    const photoList1 = ['photo/1.jpg', 'photo/2.jpg', 'photo/3.jpg', 'photo/4.jpg', 'photo/5.jpg', 'photo/6.jpg'];
+    const photoList2 = ['photo/7.jpg', 'photo/8.jpg', 'photo/9.jpg', 'photo/10.jpg', 'photo/11.jpg', 'photo/12.jpg'];
+    const photoList3 = ['photo/13.jpg', 'photo/14.jpg', 'photo/15.jpg', 'photo/16.jpg', 'photo/17.jpg', 'photo/18.jpg'];
+
+    function renderTrack(elementId, photos) {
+        const track = document.getElementById(elementId);
+        let html = '';
+        for (let loop = 0; loop < 6; loop++) {
+            photos.forEach(src => {
+                html += `<div class="film-item"><img src="${src}" alt=""></div>`;
+            });
+        }
+        track.innerHTML = html;
+    }
+    renderTrack('track1', photoList1);
+    renderTrack('track2', photoList2);
+    renderTrack('track3', photoList3);
+
+    // ==========================================
+    // 2. 烟花粒子文字系统 (Canvas)
+    // ==========================================
+    const canvas = document.getElementById('fireworksCanvas');
+    const ctx = canvas.getContext('2d');
+    let textParticles = [];
+    let fireworks = [];
+    let animationFrameId;
+    let lastFireworkTime = 0;
+
+    function initParticles() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        textParticles = [];
+        fireworks = [];
+        
+        const w = canvas.width;
+        const h = canvas.height;
+        
+        const fontSize1 = Math.max(w * 0.14, 100);
+
+        const tempCanvas = document.createElement('canvas');
+        const tCtx = tempCanvas.getContext('2d');
+        tempCanvas.width = w;
+        tempCanvas.height = h;
+        
+        tCtx.fillStyle = '#fff';
+        tCtx.textAlign = 'center';
+        tCtx.textBaseline = 'middle';
+        
+        tCtx.font = `bold ${fontSize1}px "Microsoft Yahei", "Arial Black", serif`;
+        tCtx.fillText("Dear CHERRY", w / 2, h * 0.4);
+        
+        let fontSize2 = Math.max(w * 0.10, 70);
+        const maxWidth2 = w * 0.88;
+        
+        tCtx.font = `bold ${fontSize2}px "Microsoft Yahei", "Arial Black", serif`;
+        let text2Width = tCtx.measureText("Happy Birthday!").width;
+        
+        if (text2Width > maxWidth2) {
+            fontSize2 = fontSize2 * (maxWidth2 / text2Width);
+        }
+        
+        tCtx.font = `bold ${fontSize2}px "Microsoft Yahei", "Arial Black", serif`;
+        tCtx.fillText("Happy Birthday!", w / 2, h * 0.4 + fontSize1 * 0.9);
+
+        const imageData = tCtx.getImageData(0, 0, w, h).data;
+        const gap = 4;
+
+        for (let y = 0; y < h; y += gap) {
+            for (let x = 0; x < w; x += gap) {
+                const index = (y * w + x) * 4;
+                if (imageData[index + 3] > 128) {
+                    textParticles.push({
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        targetX: x,
+                        targetY: y,
+                        vx: 0, vy: 0,
+                        size: Math.random() * 1.8 + 0.8,
+                        color: Math.random() > 0.3 ? '#FFFFFF' : (Math.random() > 0.5 ? '#FFD700' : '#E0E0E0'),
+                        alpha: 0,
+                        baseAlpha: Math.random() * 0.5 + 0.5,
+                        flickerSpeed: Math.random() * 0.01 + 0.005,
+                        flickerOffset: Math.random() * Math.PI * 2
+                    });
+                }
+            }
+        }
+
+        // ===== 精准定位"a"的肚子 =====
+        tCtx.font = `bold ${fontSize1}px "Microsoft Yahei", "Arial Black", serif`;
+        const text1 = "Dear CHERRY";
+        const textWidth = tCtx.measureText(text1).width;
+        const startX = w / 2 - textWidth / 2;
+        
+        const dWidth = tCtx.measureText("D").width;
+        const eWidth = tCtx.measureText("e").width;
+        const aWidth = tCtx.measureText("a").width;
+        
+        const aLeft = Math.floor(startX + dWidth + eWidth);
+        const aRight = Math.floor(aLeft + aWidth);
+        const aTop = Math.floor(h * 0.4 - fontSize1 * 0.3);
+        const aBottom = Math.floor(h * 0.4 + fontSize1 * 0.3);
+
+        let aMinX = w, aMaxX = 0, aMinY = h, aMaxY = 0;
+
+        for (let y = aTop; y < aBottom; y++) {
+            for (let x = aLeft; x < aRight; x++) {
+                if (x >= 0 && x < w && y >= 0 && y < h) {
+                    const index = (y * w + x) * 4;
+                    if (imageData[index + 3] > 128) {
+                        if (x < aMinX) aMinX = x;
+                        if (x > aMaxX) aMaxX = x;
+                        if (y < aMinY) aMinY = y;
+                        if (y > aMaxY) aMaxY = y;
+                    }
+                }
+            }
+        }
+
+        if (aMinX < aMaxX && aMinY < aMaxY) {
+            const aCenterX = (aMinX + aMaxX) / 2;
+            const aRealHeight = aMaxY - aMinY;
+            const aRealWidth = aMaxX - aMinX;
+
+            const heart = document.getElementById('heartEnvelope');
+            
+            const heartSize = aRealWidth * 0.9; 
+            heart.style.width = heartSize + 'px';
+            heart.style.height = heartSize + 'px';
+            
+            heart.style.left = aCenterX + 'px';
+            
+            const aCenterY = (aMinY + aMaxY) / 2 + (aRealHeight * 0.1);
+            heart.style.top = aCenterY + 'px';
+            
+            heart.style.opacity = '1';
+        }
+
+        animate(0);
+    }
+
+    // 烟花类
+    class Firework {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = canvas.height;
+            this.targetY = Math.random() * canvas.height * 0.5 + 50;
+            this.vx = (Math.random() - 0.5) * 2;
+            this.vy = Math.random() * -3 - 3;
+            this.color = `hsl(${Math.random() * 60 + 30}, 100%, 70%)`;
+            this.particles = [];
+            this.exploded = false;
+        }
+        update() {
+            if (!this.exploded) {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.05; 
+                if (this.vy >= 0 || this.y <= this.targetY) {
+                    this.exploded = true;
+                    this.explode();
+                    playFireworkSound();
+                }
+            } else {
+                this.particles.forEach(p => p.update());
+                this.particles = this.particles.filter(p => p.alpha > 0);
+            }
+        }
+        explode() {
+            const count = Math.floor(Math.random() * 50) + 50;
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 5 + 1;
+                this.particles.push({
+                    x: this.x, y: this.y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    alpha: 1,
+                    color: this.color,
+                    decay: Math.random() * 0.02 + 0.01,
+                    update() {
+                        this.x += this.vx;
+                        this.y += this.vy;
+                        this.vx *= 0.98;
+                        this.vy *= 0.98;
+                        this.vy += 0.05;
+                        this.alpha -= this.decay;
+                    }
+                });
+            }
+        }
+        draw() {
+            if (!this.exploded) {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            } else {
+                this.particles.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fill();
+                });
+            }
+        }
+    }
+
+    function animate(time) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        textParticles.forEach(p => {
+            p.vx += (p.targetX - p.x) * 0.02;
+            p.vy += (p.targetY - p.y) * 0.02;
+            p.vx *= 0.85;
+            p.vy *= 0.85;
+            p.x += p.vx;
+            p.y += p.vy;
+            
+            const flicker = Math.sin(time * p.flickerSpeed + p.flickerOffset) * 0.4 + 0.6;
+            p.alpha += (p.baseAlpha * flicker - p.alpha) * 0.1;
+            
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = p.alpha;
+            ctx.fill();
+        });
+
+        if (time - lastFireworkTime > 400) { 
+            fireworks.push(new Firework());
+            lastFireworkTime = time;
+        }
+
+        fireworks.forEach(f => f.update());
+        fireworks = fireworks.filter(f => f.exploded === false || f.particles.length > 0);
+        fireworks.forEach(f => f.draw());
+
+        ctx.globalAlpha = 1;
+        animationFrameId = requestAnimationFrame(animate);
+    }
+
+    initParticles();
+    window.addEventListener('resize', () => {
+        cancelAnimationFrame(animationFrameId);
+        initParticles();
+    });
+
+    // ==========================================
+    // 3. 核心交互逻辑
+    // ==========================================
+    var bgAudio = document.getElementById("bgAudio");
+    var musicBtn = document.getElementById("musicBtn");
+    
+    var heartEnvelope = document.getElementById("heartEnvelope"); // 初始的爱心（在a肚子）
+    var heartEnvelopeClosed = document.getElementById("heartEnvelopeClosed"); // 居中未拆封的爱心
+    
+    var filmWrapper = document.getElementById("filmWrapper");
+    var openedPaper = document.getElementById("openedPaper");
+    var backEnvBtn = document.getElementById("backEnvBtn");
+    var letterParas = document.querySelectorAll(".letter-para");
+    var previewMask = document.getElementById("previewMask");
+    var previewImg = document.getElementById("previewImg");
+    var paraIndex = 0;
+
+    // 首次点击页面时，激活音频
+    document.addEventListener('click', function initAudioContext() {
+        bgAudio.play().then(() => bgAudio.pause()).catch(() => {});
+        document.removeEventListener('click', initAudioContext);
+    }, { once: true });
+
+    musicBtn.onclick = function(e) {
+        e.stopPropagation();
+        if (bgAudio.paused) { bgAudio.play().catch(function(){}); musicBtn.textContent = "♫"; }
+        else { bgAudio.pause(); musicBtn.textContent = "♪"; }
+    };
+
+    // 步骤1：点击“a”肚子里的初始爱心
+    heartEnvelope.onclick = function(e) {
+        e.stopPropagation(); 
+
+        // 隐藏初始爱心
+        heartEnvelope.style.opacity = '0';
+        heartEnvelope.style.transform = 'translate(-50%, -50%) scale(0.5)';
+        
+        // 隐藏粒子文字画布
+        canvas.style.opacity = '0';
+        setTimeout(() => {
+            canvas.style.display = 'none';
+            cancelAnimationFrame(animationFrameId); 
+        }, 1000);
+
+        // 显示滚动照片墙
+        filmWrapper.classList.add('show');
+
+        // 延迟一点，在照片墙出现后，显示中间的“未拆封的爱心信封”
+        setTimeout(() => {
+            heartEnvelopeClosed.classList.add('show');
+            
+            // 播放背景音乐
+            if (bgAudio.paused) { bgAudio.play().catch(function(){}); musicBtn.textContent = "♫"; }
+            
+            paraIndex = 0;
+            letterParas.forEach(p => p.classList.remove("show"));
+        }, 600);
+    };
+
+    // 步骤2：点击屏幕中间“未拆封的爱心信封”，打开信纸
+    heartEnvelopeClosed.onclick = function(e) {
+        e.stopPropagation();
+        
+        // 信封缩小消失
+        heartEnvelopeClosed.style.transform = 'translate(-50%, -50%) scale(0.8)';
+        heartEnvelopeClosed.style.opacity = '0';
+        
+        setTimeout(() => {
+            heartEnvelopeClosed.classList.remove('show');
+            // 恢复样式为下次使用做准备
+            heartEnvelopeClosed.style.transform = 'translate(-50%, -50%) scale(1)';
+            heartEnvelopeClosed.style.opacity = '1';
+            
+            // 展开信纸
+            openedPaper.classList.add('show');
+        }, 400);
+    };
+
+    // 步骤3：点击信纸底部的“收回信封”
+    backEnvBtn.onclick = function(e) {
+        e.stopPropagation(); 
+        
+        // 信纸关闭
+        openedPaper.classList.remove('show');
+        
+        // 延迟显示中间未拆封的爱心信封
+        setTimeout(function() { 
+            heartEnvelopeClosed.classList.add('show');
+        }, 400);
+        
+        paraIndex = 0;
+        letterParas.forEach(p => p.classList.remove("show"));
+    };
+
+    // 点击屏幕逐段显示信件内容
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.back-env-btn') || e.target.closest('.heart-envelope') || 
+            e.target.closest('.heart-envelope-closed') ||
+            e.target.closest('.music-btn') || 
+            e.target.closest('.film-item') || e.target.closest('.preview-mask')) return;
+        
+        if (openedPaper.classList.contains('show')) {
+            if (paraIndex < letterParas.length) {
+                letterParas[paraIndex].classList.add("show");
+                paraIndex++;
+            }
+        }
+    });
+
+    // 图片放大预览
+    document.querySelectorAll('.film-item').forEach(item => {
+        item.onclick = function(e) {
+            e.stopPropagation();
+            const img = item.querySelector('img');
+            if (img) { previewImg.src = img.src; previewMask.style.display = 'flex'; }
+        };
+    });
+    previewMask.onclick = function() { previewMask.style.display = 'none'; };
+</script>
+</body>
+</html>

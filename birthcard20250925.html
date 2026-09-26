@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday to Cherry</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: "华文中宋", "STZhongsong", "SimSun", serif;
+            background: linear-gradient(135deg, #ffd1dc 0%, #ffb6c1 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 800px;
+            height: 550px;
+            perspective: 1200px;
+        }
+        
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+        
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .page {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .front {
+            background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 100%);
+            color: #fff;
+            text-align: center;
+        }
+        
+        .back {
+            background: linear-gradient(45deg, #fff9c4 0%, #ffecb3 100%);
+            color: #333;
+            transform: rotateY(180deg);
+            text-align: center;
+            overflow-y: auto;
+            padding-top: 50px;
+            padding-bottom: 50px;
+            justify-content: flex-start;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .front h1 {
+            color: #ff3366;
+        }
+        
+        .back h1 {
+            color: #ff9800;
+            font-size: 2.5rem;
+            margin-bottom: 25px;
+        }
+        
+        .message {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            text-align: left;
+            max-width: 90%;
+            margin: 0 auto;
+            padding: 20px 0;
+        }
+        
+        .sentence {
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            text-indent: 2em;
+        }
+        
+        .sentence.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .highlight {
+            color: #ff6b00;
+            font-weight: bold;
+        }
+        
+        .signature {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 1.5rem;
+            color: #ff6b00;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+        
+        .signature.visible {
+            opacity: 1;
+        }
+        
+        .decoration {
+            position: absolute;
+            opacity: 0.7;
+        }
+        
+        .decoration-1 {
+            top: 10%;
+            left: 10%;
+            width: 80px;
+            height: 80px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50,10 C70,10 90,30 90,50 C90,70 70,90 50,90 C30,90 10,70 10,50 C10,30 30,10 50,10 Z" fill="none" stroke="%23ffffff" stroke-width="3"/></svg>') no-repeat;
+            animation: float 8s infinite ease-in-out;
+        }
+        
+        .decoration-2 {
+            bottom: 15%;
+            right: 15%;
+            width: 60px;
+            height: 60px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><polygon points="50,10 90,90 10,90" fill="none" stroke="%23ffffff" stroke-width="3"/></svg>') no-repeat;
+            animation: float 6s infinite ease-in-out reverse;
+        }
+        
+        .tulip {
+            position: absolute;
+            font-size: 2.5rem;
+            opacity: 0.7;
+            z-index: 1;
+            animation: float 6s infinite ease-in-out;
+        }
+        
+        .tulip-yellow {
+            color: #ffd700;
+        }
+        
+        .tulip-white {
+            color: #fff;
+            text-shadow: 0 0 3px rgba(0,0,0,0.2);
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+        
+        .instruction {
+            position: absolute;
+            bottom: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+        
+        .click-instruction {
+            position: absolute;
+            bottom: 20px;
+            color: rgba(255, 107, 0, 0.8);
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .click-instruction.visible {
+            opacity: 1;
+        }
+        
+        .music-control {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            color: #fff;
+            backdrop-filter: blur(5px);
+            z-index: 10;
+        }
+        
+        .music-control:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0;
+        }
+        
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(1000px) rotate(360deg); opacity: 0; }
+        }
+        
+        /* 添加心形装饰 */
+        .heart {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            opacity: 0.6;
+            animation: float 5s infinite ease-in-out;
+        }
+        
+        .heart:before, .heart:after {
+            content: "";
+            position: absolute;
+            left: 10px;
+            top: 0;
+            width: 10px;
+            height: 16px;
+            background: #ff3366;
+            border-radius: 10px 10px 0 0;
+            transform: rotate(-45deg);
+            transform-origin: 0 100%;
+        }
+        
+        .heart:after {
+            left: 0;
+            transform: rotate(45deg);
+            transform-origin: 100% 100%;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .container {
+                height: 500px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .back h1 {
+                font-size: 2rem;
+            }
+            
+            .message {
+                font-size: 1rem;
+            }
+            
+            .tulip {
+                font-size: 2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                height: 450px;
+            }
+            
+            .page {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .back h1 {
+                font-size: 1.6rem;
+            }
+            
+            .message {
+                font-size: 0.9rem;
+            }
+            
+            .tulip {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="page front">
+                <h1>Happy Birthday</h1>
+                <h2>to the most wonderful Cherry!</h2>
+                <p>点击卡片翻开祝福</p>
+                <div class="decoration decoration-1"></div>
+                <div class="decoration decoration-2"></div>
+                <div class="instruction">点击卡片翻开祝福</div>
+                
+                <!-- 添加心形装饰 -->
+                <div class="heart" style="top: 30%; left: 20%;"></div>
+                <div class="heart" style="top: 60%; left: 80%;"></div>
+                <div class="heart" style="top: 80%; left: 40%;"></div>
+            </div>
+            <div class="page back">
+                <h1>全世界最好的Cherry：</h1>
+                <div class="message">
+                    <div class="sentence">生日快乐！</div>
+                    <div class="sentence"><span class="highlight">YELLOW</span> really matches you~灿烂，明媚，耀眼。</div>
+                    <div class="sentence"><span class="highlight">RUN</span> really resembles you~善良，活泼，可靠。</div>
+                    <div class="sentence">Cherry是一个很好很好的小女孩，坚强又勇敢，努力且坚定，聪明美丽可爱有主见，是这个世界上我最喜欢最欣赏的女孩，是我坚定认为并衷心希望以后一定能过得很好——事业有成，千万富翁，所有愿望都实现的女孩。</div>
+                    <div class="sentence">我特别高兴遇见了你，跟你呆在一起的时间里，我一直感到愉快，融洽，温暖，幸福。感恩这么好的Cherry成为了我的朋友，我在杭州的这些日子里无比想念你，我的宝宝。</div>
+                    <div class="sentence">Cherry已经是很好的人啦~那就让我祝她的愿望全部实现！此外，愿她身体健康，按时吃饭，不要太累着自己。宝宝想做什么就去做吧，想笑就笑，想哭就哭，想闹就闹，想任性就任性。<span class="highlight">Stella也一直在~</span></div>
+                </div>
+                
+                <div class="signature">❤永远爱你的Stella❤</div>
+                <div class="click-instruction">点击继续显示下一句</div>
+                
+                <!-- 添加郁金香装饰 -->
+                <div class="tulip tulip-yellow" style="top: 10%; left: 15%;">🌷</div>
+                <div class="tulip tulip-white" style="top: 15%; right: 10%;">🌷</div>
+                <div class="tulip tulip-yellow" style="bottom: 20%; left: 5%;">🌷</div>
+                <div class="tulip tulip-white" style="bottom: 10%; right: 20%;">🌷</div>
+                <div class="tulip tulip-yellow" style="top: 70%; left: 8%;">🌷</div>
+                <div class="tulip tulip-white" style="top: 65%; right: 5%;">🌷</div>
+            </div>
+        </div>
+    </div>
+    
+    <button class="music-control">♪</button>
+    
+    <audio id="bgMusic" loop>
+        <source src="https://music.163.com/song/media/outer/url?id=1363948882.mp3" type="audio/mpeg">
+    </audio>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const card = document.querySelector('.card');
+            const musicControl = document.querySelector('.music-control');
+            const bgMusic = document.getElementById('bgMusic');
+            const sentences = document.querySelectorAll('.sentence');
+            const signature = document.querySelector('.signature');
+            const clickInstruction = document.querySelector('.click-instruction');
+            let musicPlaying = false;
+            let currentSentence = 0;
+            let isBackPage = false;
+            
+            // 翻页效果
+            card.addEventListener('click', function() {
+                if (!isBackPage) {
+                    // 第一次点击：翻到第二面
+                    this.classList.add('flipped');
+                    isBackPage = true;
+                    
+                    // 第一次翻页时播放音乐
+                    if (!musicPlaying) {
+                        bgMusic.play().then(() => {
+                            musicPlaying = true;
+                            musicControl.textContent = '♫';
+                        }).catch(error => {
+                            console.log('自动播放被阻止，需要用户交互');
+                        });
+                    }
+                    
+                    // 翻到第二面时添加五彩纸屑效果
+                    createConfetti();
+                    
+                    // 显示第一句话
+                    setTimeout(() => {
+                        if (sentences.length > 0) {
+                            sentences[0].classList.add('visible');
+                            currentSentence = 1;
+                            clickInstruction.classList.add('visible');
+                        }
+                    }, 500);
+                } else {
+                    // 第二面点击：逐句显示
+                    if (currentSentence < sentences.length) {
+                        sentences[currentSentence].classList.add('visible');
+                        currentSentence++;
+                        
+                        // 如果是最后一句，显示签名
+                        if (currentSentence === sentences.length) {
+                            setTimeout(() => {
+                                signature.classList.add('visible');
+                                clickInstruction.textContent = "祝福已完成";
+                            }, 800);
+                        }
+                    }
+                }
+            });
+            
+            // 音乐控制
+            musicControl.addEventListener('click', function(e) {
+                e.stopPropagation(); // 防止触发卡片翻页
+                
+                if (musicPlaying) {
+                    bgMusic.pause();
+                    musicPlaying = false;
+                    this.textContent = '♪';
+                } else {
+                    bgMusic.play();
+                    musicPlaying = true;
+                    this.textContent = '♫';
+                }
+            });
+            
+            // 创建五彩纸屑效果
+            function createConfetti() {
+                const colors = ['#ff3366', '#ff9800', '#ffcc00', '#ffd700', '#ffeb3b'];
+                
+                for (let i = 0; i < 50; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animation = `confetti-fall ${Math.random() * 3 + 2}s linear forwards`;
+                    document.body.appendChild(confetti);
+                    
+                    // 动画结束后移除元素
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 5000);
+                }
+            }
+            
+            // 添加更多心形装饰
+            function addHearts() {
+                const heartsContainer = document.body;
+                for (let i = 0; i < 10; i++) {
+                    const heart = document.createElement('div');
+                    heart.className = 'heart';
+                    heart.style.left = Math.random() * 100 + 'vw';
+                    heart.style.top = Math.random() * 100 + 'vh';
+                    heart.style.animationDelay = Math.random() * 5 + 's';
+                    heartsContainer.appendChild(heart);
+                }
+            }
+            
+            addHearts();
+        });
+    </script>
+</body>
+</html>
