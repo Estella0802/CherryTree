@@ -25,11 +25,23 @@ jobs:
 
       - name: Copy resources into app
         run: |
-          cp *.gif *.png *.html *.mp3 dist/CherryTree.app/Contents/MacOS/ || true
-          cp -r photo dist/CherryTree.app/Contents/MacOS/ || true
+          # macOS 应用规范：资源文件必须放在 Contents/Resources 目录
+          cp *.gif *.png *.html *.mp3 dist/CherryTree.app/Contents/Resources/ || true
+          cp -r photo dist/CherryTree.app/Contents/Resources/ || true
+
+      - name: Fix executable permission
+        run: |
+          # 修复主程序执行权限，避免跨系统传输后权限丢失
+          chmod +x dist/CherryTree.app/Contents/MacOS/CherryTree
+
+      - name: Package into zip
+        run: |
+          # 完整打包 .app 文件夹，解压后直接是可识别的应用程序
+          cd dist
+          zip -r ../CherryTree-macOS.zip CherryTree.app
 
       - name: Upload app
         uses: actions/upload-artifact@v4
         with:
           name: CherryTree-macOS
-          path: dist/CherryTree.app
+          path: CherryTree-macOS.zip
