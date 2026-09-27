@@ -441,7 +441,7 @@ class RanDesktopPet(QWidget):
 
     def switch_state(self, state_name):
         self.current_state = state_name
-        fp = os.path.join(app_dir(), self.file_list[state_name])
+        fp = self.file_list[state_name]
 
         if self.current_movie is not None:
             self.current_movie.stop()
