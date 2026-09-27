@@ -11,6 +11,19 @@ from PyQt5.QtGui import QMovie, QPixmap, QPainter, QColor, QTransform, QPainterP
 from PyQt5.QtCore import Qt, QPoint, QTimer, QTime
 
 QApplication.setAttribute(Qt.AA_DisableHighDpiScaling)
+def get_resource_path(relative_path):
+    """获取资源文件的绝对路径，兼容本地运行和打包后的 macOS App"""
+    import sys
+    import os
+    if getattr(sys, 'frozen', False):
+        # 打包后：二进制在 Contents/MacOS，资源在 Contents/Resources
+        exe_dir = os.path.dirname(sys.executable)
+        base_path = os.path.abspath(os.path.join(exe_dir, "../Resources"))
+    else:
+        # 本地运行：以脚本所在目录为基准
+        base_path = os.path.abspath(os.path.dirname(__file__))
+    return os.path.join(base_path, relative_path)
+
 
 
 # ---------------------- 彩带粒子窗口类 ----------------------
@@ -304,11 +317,12 @@ class RanDesktopPet(QWidget):
 
         self.drag_position = None
         self.file_list = {
-            "idle": "shineranGIF-ezgif.com-crop.gif",
-            "cheer": "ran_cheer.png",
-            "kiss": "ran_kiss.png",
-            "reminder": "ran_reminder.png"
-        }
+    "idle": get_resource_path("shineranGIF-ezgif.com-crop.gif"),
+    "cheer": get_resource_path("ran_cheer.png"),
+    "kiss": get_resource_path("ran_kiss.png"),
+    "reminder": get_resource_path("ran_reminder.png")
+}
+
         self.current_movie = None
         self.current_state = "idle"
         self.pix = QPixmap()
@@ -385,7 +399,7 @@ class RanDesktopPet(QWidget):
             self.confetti_window.raise_()
 
     def open_birthday_card(self, filename):
-        full_path = os.path.join(app_dir(), filename)
+        full_path = get_resource_path(filename)
         webbrowser.open("file://" + full_path)
 
     def time_in_range(self, now: QTime, s: QTime, e: QTime):
@@ -677,7 +691,9 @@ class RanDesktopPet(QWidget):
 
 if __name__ == "__main__":
     try:
-        # ============ macOS 兼容：设置辅助应用模式，不抢焦点 ============
+        app = QApplication(sys.argv)
+        app.setQuitOnLastWindowClosed(False)   # 关键：事件循环不因没窗口而退出
+
         if sys.platform == "darwin":
             try:
                 from AppKit import NSApplication, NSApplicationActivationPolicyAccessory
@@ -687,21 +703,11 @@ if __name__ == "__main__":
                 print("[macOS] 已设置为辅助应用模式，不会抢占焦点")
             except ImportError:
                 print("[macOS] 警告：未找到 pyobjc，无法设置辅助应用模式")
-                print("[macOS] 请在打包前执行: pip3 install pyobjc")
-        # =============================================================
 
-        app = QApplication(sys.argv)
-        # macOS 保险：某些 PyQt5 版本初始化时会覆盖 activation policy，这里再设一次
-        if sys.platform == "darwin":
-            try:
-                from AppKit import NSApplication, NSApplicationActivationPolicyAccessory
-                NSApplication.sharedApplication().setActivationPolicy_(
-                    NSApplicationActivationPolicyAccessory
-                )
-            except ImportError:
-                pass
         pet = RanDesktopPet()
         pet.show()
+        pet.raise_()
+        pet.activateWindow()
         sys.exit(app.exec_())
     except Exception as err:
         print("启动报错：", err)
